@@ -62,6 +62,8 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSignInPw, setShowSignInPw] = useState(false);
+  const [showSignUpPw, setShowSignUpPw] = useState(false);
 
   if (!authLoading && user) return <Navigate to="/" replace />;
 
