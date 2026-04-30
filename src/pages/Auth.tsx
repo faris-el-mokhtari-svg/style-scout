@@ -69,6 +69,10 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < PASSWORD_MIN || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      toast.error("Passwort erfüllt die Anforderungen nicht");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
