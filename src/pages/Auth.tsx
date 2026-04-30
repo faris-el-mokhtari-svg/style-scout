@@ -155,7 +155,8 @@ export default function Auth() {
                 </div>
                 <div>
                   <Label>Passwort</Label>
-                  <Input type="password" minLength={6} required value={password} onChange={e => setPassword(e.target.value)} className="rounded-2xl h-12" />
+                  <PasswordField value={password} onChange={setPassword} show={showSignUpPw} onToggle={() => setShowSignUpPw(s => !s)} autoComplete="new-password" />
+                  <PasswordRequirements password={password} />
                 </div>
                 <Button type="submit" disabled={loading} className="w-full h-12 rounded-2xl gradient-primary text-primary-foreground font-bold">
                   {loading ? <Loader2 className="size-4 animate-spin" /> : "Account erstellen"}
