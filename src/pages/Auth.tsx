@@ -8,7 +8,52 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Eye, EyeOff, Check } from "lucide-react";
+
+const PASSWORD_MIN = 8;
+
+function PasswordField({
+  value, onChange, show, onToggle, autoComplete,
+}: { value: string; onChange: (v: string) => void; show: boolean; onToggle: () => void; autoComplete: string }) {
+  return (
+    <div className="relative">
+      <Input
+        type={show ? "text" : "password"}
+        required
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        autoComplete={autoComplete}
+        className="rounded-2xl h-12 pr-12"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={show ? "Passwort verstecken" : "Passwort anzeigen"}
+        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+      >
+        {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+      </button>
+    </div>
+  );
+}
+
+function PasswordRequirements({ password }: { password: string }) {
+  const checks = [
+    { ok: password.length >= PASSWORD_MIN, label: `Mindestens ${PASSWORD_MIN} Zeichen` },
+    { ok: /[A-Z]/.test(password), label: "Ein Großbuchstabe" },
+    { ok: /[0-9]/.test(password), label: "Eine Zahl" },
+  ];
+  return (
+    <ul className="space-y-1 text-xs mt-1.5">
+      {checks.map(c => (
+        <li key={c.label} className={`flex items-center gap-1.5 ${c.ok ? "text-like" : "text-muted-foreground"}`}>
+          <Check className={`size-3 ${c.ok ? "opacity-100" : "opacity-30"}`} strokeWidth={3} />
+          {c.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function Auth() {
   const { user, loading: authLoading } = useAuth();
