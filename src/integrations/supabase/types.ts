@@ -97,6 +97,7 @@ export type Database = {
           aesthetic_labels: string[] | null
           color_palette: string[] | null
           description: string | null
+          dna_preferences: Json | null
           id: string
           updated_at: string
           user_id: string
@@ -105,6 +106,7 @@ export type Database = {
           aesthetic_labels?: string[] | null
           color_palette?: string[] | null
           description?: string | null
+          dna_preferences?: Json | null
           id?: string
           updated_at?: string
           user_id: string
@@ -113,6 +115,7 @@ export type Database = {
           aesthetic_labels?: string[] | null
           color_palette?: string[] | null
           description?: string | null
+          dna_preferences?: Json | null
           id?: string
           updated_at?: string
           user_id?: string

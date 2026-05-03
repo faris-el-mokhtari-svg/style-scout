@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Heart, Loader2, Trash2 } from "lucide-react";
+import { ExternalLink, Heart, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type Swipe = {
   id: string;
@@ -15,6 +14,12 @@ type Swipe = {
   created_at: string;
 };
 
+const filters = [
+  { value: "all",  label: "Alle" },
+  { value: "like", label: "Likes" },
+  { value: "save", label: "Gespeichert" },
+] as const;
+
 export default function Likes() {
   const { user } = useAuth();
   const [items, setItems] = useState<Swipe[]>([]);
@@ -23,7 +28,12 @@ export default function Likes() {
 
   const load = async () => {
     if (!user) return;
-    const { data } = await supabase.from("product_swipes").select("*").eq("user_id", user.id).in("action", ["like", "save"]).order("created_at", { ascending: false });
+    const { data } = await supabase
+      .from("product_swipes")
+      .select("*")
+      .eq("user_id", user.id)
+      .in("action", ["like", "save"])
+      .order("created_at", { ascending: false });
     setItems((data ?? []) as any);
     setLoading(false);
   };
@@ -39,64 +49,142 @@ export default function Likes() {
   const filtered = filter === "all" ? items : items.filter(i => i.action === filter);
 
   return (
-    <div className="px-5 pt-8">
-      <div className="flex items-end justify-between mb-4">
+    <div className="flex flex-col min-h-[calc(100vh-5rem)]">
+      {/* Header */}
+      <div className="px-[15px] pt-8 pb-4 flex items-end justify-between border-b border-border">
         <div>
-          <h1 className="text-3xl font-black">Wunschliste</h1>
-          <p className="text-sm text-muted-foreground">{items.length} {items.length === 1 ? "Stück" : "Stücke"}</p>
+          <p className="text-[10px] tracking-[0.1em] uppercase text-muted-foreground mb-1">
+            cur8
+          </p>
+          <h1 className="text-base font-medium tracking-tight">
+            Gespeichert
+            {items.length > 0 && (
+              <span className="ml-2 text-muted-foreground font-normal">{items.length}</span>
+            )}
+          </h1>
         </div>
-        <Heart className="size-7 text-primary fill-primary" />
+        <Heart className="size-4 text-muted-foreground mb-0.5" strokeWidth={1.5} />
       </div>
 
-      <Tabs value={filter} onValueChange={v => setFilter(v as any)} className="mb-4">
-        <TabsList className="grid grid-cols-3 rounded-2xl">
-          <TabsTrigger value="all" className="rounded-xl">Alle</TabsTrigger>
-          <TabsTrigger value="like" className="rounded-xl">❤️ Likes</TabsTrigger>
-          <TabsTrigger value="save" className="rounded-xl">🔖 Saved</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {loading ? (
-        <div className="flex justify-center py-20"><Loader2 className="size-6 animate-spin text-primary" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16 px-6 rounded-3xl bg-card shadow-soft">
-          <Heart className="size-10 text-primary mx-auto mb-3" />
-          <p className="font-bold">Noch nichts gespeichert</p>
-          <p className="text-sm text-muted-foreground">Swipe in Discover nach rechts oder oben.</p>
+      {/* Filter tabs */}
+      <div className="border-b border-border">
+        <div className="flex px-[15px]">
+          {filters.map(f => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={cn(
+                "px-4 h-9 text-[10px] tracking-[0.1em] uppercase font-medium transition-colors border-b-[1.5px] -mb-[1px]",
+                filter === f.value
+                  ? "text-foreground border-foreground"
+                  : "text-muted-foreground border-transparent hover:text-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <AnimatePresence>
-            {filtered.map(s => (
-              <motion.div
-                key={s.id}
-                layout
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="bg-card rounded-2xl overflow-hidden shadow-soft"
-              >
-                <div className="aspect-square bg-muted relative">
-                  <img src={s.product_data.image} alt={s.product_data.title} className="w-full h-full object-cover" />
-                  <button onClick={() => remove(s.id)} className="absolute top-2 right-2 bg-card/90 backdrop-blur rounded-full p-1.5 shadow-soft">
-                    <Trash2 className="size-3.5 text-destructive" />
-                  </button>
+      </div>
+
+      {/* Grid */}
+      <div className="bg-border flex-1">
+        {loading ? (
+          <div className="grid grid-cols-2 gap-[1px]">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col bg-background">
+                <div className="aspect-[3/4] bg-secondary animate-pulse" />
+                <div className="p-[10px] space-y-1.5">
+                  <div className="h-2 w-14 bg-secondary animate-pulse" />
+                  <div className="h-2.5 w-full bg-secondary animate-pulse" />
+                  <div className="h-2 w-10 bg-secondary animate-pulse" />
                 </div>
-                <div className="p-3">
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground">{s.product_data.source}</div>
-                  <h3 className="text-sm font-bold leading-tight line-clamp-2 mb-1">{s.product_data.title}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-sm">{s.product_data.price}</span>
-                    <a href={s.product_data.link} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" className="size-7 rounded-full gradient-primary text-primary-foreground"><ExternalLink className="size-3" /></Button>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="bg-background text-center py-16 px-6">
+            <p className="text-sm font-medium tracking-tight mb-2">
+              {items.length === 0 ? "Noch nichts gespeichert." : "Keine Stücke hier."}
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px] mx-auto">
+              {items.length === 0
+                ? "Like oder speichere Produkte in Entdecken."
+                : "Versuch einen anderen Filter."}
+            </p>
+            {filter !== "all" && (
+              <button
+                onClick={() => setFilter("all")}
+                className="mt-5 text-xs tracking-[0.1em] uppercase font-medium border-b border-foreground pb-0.5"
+              >
+                Alle anzeigen
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-[1px]">
+            <AnimatePresence>
+              {filtered.map(s => (
+                <motion.div
+                  key={s.id}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex flex-col bg-background group"
+                >
+                  {/* Image */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-secondary">
+                    <img
+                      src={s.product_data.image}
+                      alt={s.product_data.title}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    {/* Action dot */}
+                    <span className={cn(
+                      "absolute top-2 left-2 w-1.5 h-1.5",
+                      s.action === "like" ? "bg-like" : "bg-save"
+                    )} />
+                    {/* Remove */}
+                    <button
+                      onClick={() => remove(s.id)}
+                      className="absolute top-2 right-2 w-7 h-7 bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Entfernen"
+                    >
+                      <Trash2 className="size-3 text-destructive" strokeWidth={1.5} />
+                    </button>
+                    {/* Shop link */}
+                    <a
+                      href={s.product_data.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="absolute bottom-2 right-2 w-7 h-7 bg-background/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Im Shop ansehen"
+                    >
+                      <ExternalLink className="size-3 text-foreground/60" strokeWidth={1.5} />
                     </a>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+
+                  {/* Meta */}
+                  <div className="p-[10px] pb-[15px] space-y-[3px]">
+                    <p className="text-[10px] font-bold tracking-[0.1em] uppercase leading-none text-foreground">
+                      {s.product_data.source}
+                    </p>
+                    <p className="text-[11px] font-normal leading-tight tracking-[0.02em] text-foreground line-clamp-2">
+                      {s.product_data.title}
+                    </p>
+                    <p className="text-[10px] tracking-[0.1em] uppercase text-muted-foreground leading-none">
+                      {s.product_data.price}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

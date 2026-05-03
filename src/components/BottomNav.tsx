@@ -1,35 +1,77 @@
 import { NavLink } from "react-router-dom";
-import { Shirt, Sparkles, Heart, User } from "lucide-react";
+import { Shirt, Compass, Heart, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAesthetic } from "@/context/AestheticContext";
 
 const items = [
-  { to: "/wardrobe", label: "Schrank", icon: Shirt },
-  { to: "/discover", label: "Discover", icon: Sparkles },
-  { to: "/likes", label: "Likes", icon: Heart },
-  { to: "/profile", label: "Profil", icon: User },
+  { to: "/wardrobe",  label: "Schrank",   icon: Shirt },
+  { to: "/discover",  label: "Entdecken", icon: Compass },
+  { to: "/likes",     label: "Likes",     icon: Heart },
+  { to: "/friends",   label: "Freunde",   icon: Users },
+  { to: "/profile",   label: "Profil",    icon: User },
 ];
 
 export default function BottomNav() {
+  const { config } = useAesthetic();
+  const indicator = config.bottomNavIndicator;
+
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-card/90 backdrop-blur-xl border-t border-border safe-area-bottom">
-      <div className="max-w-md mx-auto grid grid-cols-4 px-2 py-2">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border safe-area-bottom">
+      <div className="max-w-md mx-auto grid grid-cols-5">
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center gap-1 py-2 rounded-2xl transition-all",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                "relative flex flex-col items-center gap-1.5 py-3 transition-colors",
+                isActive ? "text-foreground" : "text-muted-foreground"
               )
             }
           >
             {({ isActive }) => (
               <>
-                <div className={cn("p-1.5 rounded-xl transition-all", isActive && "gradient-primary text-primary-foreground shadow-soft scale-110")}>
-                  <Icon className="size-5" strokeWidth={2.5} />
-                </div>
-                <span className="text-[10px] font-bold">{label}</span>
+                {/* Active background — pill or fill style */}
+                {isActive && indicator === 'pill' && (
+                  <span
+                    className="absolute inset-x-2 inset-y-1.5"
+                    style={{
+                      backgroundColor: 'var(--secondary)',
+                      borderRadius: 'var(--radius-pill)',
+                    }}
+                  />
+                )}
+                {isActive && indicator === 'fill' && (
+                  <span
+                    className="absolute inset-x-1 inset-y-1"
+                    style={{
+                      backgroundColor: 'var(--primary)',
+                      borderRadius: 'var(--radius-sm)',
+                    }}
+                  />
+                )}
+
+                <Icon
+                  className={cn(
+                    "relative size-[18px] z-10",
+                    isActive && indicator === 'fill' ? "text-primary-foreground" : ""
+                  )}
+                  strokeWidth={isActive ? 2 : 1.5}
+                />
+                <span
+                  className={cn(
+                    "relative z-10 text-[9px] tracking-[0.1em] uppercase leading-none",
+                    isActive ? "font-medium" : "font-normal",
+                    isActive && indicator === 'fill' ? "text-primary-foreground" : ""
+                  )}
+                >
+                  {label}
+                </span>
+
+                {/* Underline indicator */}
+                {isActive && indicator === 'underline' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-foreground" />
+                )}
               </>
             )}
           </NavLink>

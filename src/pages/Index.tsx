@@ -1,22 +1,45 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Routes new users to /onboarding, returning users to /discover.
+function SplashScreen({ visible }: { visible: boolean }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+        >
+          <span
+            className="text-foreground font-medium select-none"
+            style={{
+              fontSize: "1.5rem",
+              letterSpacing: "-0.04em",
+              lineHeight: 1,
+            }}
+          >
+            CUR8
+          </span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Index() {
-  const { user, loading } = useAuth();
-  const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  const [splashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    supabase.from("profiles").select("onboarding_completed").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => setOnboarded(data?.onboarding_completed ?? false));
-  }, [user]);
+    const t = setTimeout(() => setSplashVisible(false), 1500);
+    return () => clearTimeout(t);
+  }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center gradient-soft"><Loader2 className="size-8 animate-spin text-primary" /></div>;
-  if (!user) return <Navigate to="/auth" replace />;
-  if (onboarded === null) return <div className="min-h-screen flex items-center justify-center gradient-soft"><Loader2 className="size-8 animate-spin text-primary" /></div>;
-  return <Navigate to={onboarded ? "/discover" : "/onboarding"} replace />;
+  return (
+    <>
+      <SplashScreen visible={splashVisible} />
+      {!splashVisible && <Navigate to="/discover" replace />}
+    </>
+  );
 }
